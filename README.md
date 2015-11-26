@@ -1,5 +1,5 @@
 # NewMoviesExpress
-Android material design demo.
+Android material design app.
 
 ## License
 
