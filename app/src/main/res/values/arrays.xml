@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="categories">
+        <item>@string/titles</item>
+        <item>@string/casts</item>
+        <item>@string/directors</item>
+    </string-array>
+</resources>

@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingBottom="@dimen/loading_dialog_vertical_padding"
+    android:paddingLeft="@dimen/loading_dialog_horizontal_padding"
+    android:paddingRight="@dimen/loading_dialog_horizontal_padding"
+    android:paddingTop="@dimen/loading_dialog_vertical_padding"
+    tools:ignore="MergeRootFrame">
+
+    <ProgressBar
+        style="@android:style/Widget.Holo.ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/id_tv_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/loading_progress_dialog_text_margin"
+        android:layout_marginStart="@dimen/loading_progress_dialog_text_margin"
+        android:text="@string/loading"
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
+
+</LinearLayout>

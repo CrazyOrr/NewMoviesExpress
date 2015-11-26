@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<se.emilsjolander.stickylistheaders.ExpandableStickyListHeadersListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/list_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:drawSelectorOnTop="true"
+    android:fastScrollEnabled="true"
+    android:overScrollMode="never"
+    android:scrollbarStyle="outsideOverlay" />
