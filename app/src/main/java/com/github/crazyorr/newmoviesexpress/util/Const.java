@@ -1,6 +1,7 @@
 package com.github.crazyorr.newmoviesexpress.util;
 
-import com.squareup.okhttp.HttpUrl;
+
+import okhttp3.HttpUrl;
 
 /**
  * Created by wanglei02 on 2015/10/14.

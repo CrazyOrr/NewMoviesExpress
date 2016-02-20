@@ -5,13 +5,13 @@
         android:defaultValue="true"
         android:key="@string/pref_key_notification"
         android:title="@string/pref_title_notification" />
-    <com.github.crazyorr.newmoviesexpress.view.NumberPickerPreference
+    <com.github.crazyorr.newmoviesexpress.widget.NumberPickerPreference
         android:defaultValue="@integer/default_days_before"
         android:dependency="@string/pref_key_notification"
         android:key="@string/pref_key_notify_since"
         android:title="@string/pref_title_notify_since"
         app:max="7" />
-    <com.github.crazyorr.newmoviesexpress.view.NumberPickerPreference
+    <com.github.crazyorr.newmoviesexpress.widget.NumberPickerPreference
         android:defaultValue="@integer/default_days_after"
         android:dependency="@string/pref_key_notification"
         android:key="@string/pref_key_notify_until"

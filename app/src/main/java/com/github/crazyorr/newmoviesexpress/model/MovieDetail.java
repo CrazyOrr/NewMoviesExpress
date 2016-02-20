@@ -1,19 +1,11 @@
 package com.github.crazyorr.newmoviesexpress.model;
 
-import android.text.TextUtils;
-
-import com.google.gson.Gson;
-
-import junit.framework.Assert;
-
 import java.util.List;
 
 /**
  * Created by wanglei02 on 2015/10/14.
  */
 public class MovieDetail extends MovieSimple {
-    private static final Gson mGson = new Gson();
-
     private List<String> aka;
     private String mobile_url;
     private int ratings_count;
@@ -34,11 +26,6 @@ public class MovieDetail extends MovieSimple {
     private List<String> trailer_urls;
     private List<String> clip_urls;
     private List<String> blooper_urls;
-
-    public static MovieDetail fromJson(String json) {
-        Assert.assertTrue(!TextUtils.isEmpty(json));
-        return mGson.fromJson(json, MovieDetail.class);
-    }
 
     public List<String> getAka() {
         return aka;
@@ -198,9 +185,5 @@ public class MovieDetail extends MovieSimple {
 
     public void setBlooper_urls(List<String> blooper_urls) {
         this.blooper_urls = blooper_urls;
-    }
-
-    public String toJson() {
-        return mGson.toJson(this);
     }
 }
