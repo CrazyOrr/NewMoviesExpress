@@ -14,7 +14,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.crazyorr.newmoviesexpress.R;
+import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.github.crazyorr.newmoviesexpress.model.MovieDetail;
+import com.github.crazyorr.newmoviesexpress.model.MovieNotificationStatus;
 import com.github.crazyorr.newmoviesexpress.model.MovieSimple;
 import com.github.crazyorr.newmoviesexpress.model.Person;
 import com.github.crazyorr.newmoviesexpress.util.GlobalVar;
@@ -27,6 +29,8 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class MovieDetailActivity extends BackableActivity {
     public static final String EXTRA_TITLE = "movie_title";
@@ -59,6 +63,7 @@ public class MovieDetailActivity extends BackableActivity {
     TextView mSummary;
 
     private MovieSimple mMovie;
+    private boolean isFollowing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +76,59 @@ public class MovieDetailActivity extends BackableActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.id_fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.id_fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                if (TextUtils.isEmpty(GlobalVar.token)) {
+//                    Toast.makeText(MovieDetailActivity.this, "请先登录",
+//                            Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+                if (isFollowing) {
+                    HttpHelper.mNewMoviesExpressService.removeMovieNotification(mMovie.getId(), GlobalVar.token).enqueue(
+                            new HttpCallback<Void>() {
+                                @Override
+                                public void onSuccess(Call<Void> call, Response<Void> response) {
+                                    isFollowing = false;
+                                    fab.setImageResource(R.drawable.ic_add_24dp);
+                                    Toast.makeText(MovieDetailActivity.this, "已删除",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onError(Call<Void> call, Response<Void> response, ApiError error) {
+                                    Toast.makeText(MovieDetailActivity.this, error.getMsg(),
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    );
+                } else {
+                    HttpHelper.mNewMoviesExpressService.addMovieNotification(mMovie.getId(), GlobalVar.token).enqueue(
+                            new HttpCallback<Void>() {
+                                @Override
+                                public void onSuccess(Call<Void> call, Response<Void> response) {
+                                    isFollowing = true;
+                                    fab.setImageResource(R.drawable.ic_remove_24dp);
+                                    Toast.makeText(MovieDetailActivity.this, "已添加",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onError(Call<Void> call, Response<Void> response, ApiError error) {
+                                    Toast.makeText(MovieDetailActivity.this, error.getMsg(),
+                                            Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onFailure(Call<Void> call, Throwable t) {
+                                    super.onFailure(call, t);
+                                    Toast.makeText(MovieDetailActivity.this, "添加提醒失败",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    );
+                }
             }
         });
 
@@ -86,6 +140,29 @@ public class MovieDetailActivity extends BackableActivity {
 
         String movieId = mMovie.getId();
         getMovieDetail(movieId);
+
+        if (GlobalVar.isLoggedIn()) {
+            HttpHelper.mNewMoviesExpressService.queryMovieNotification(mMovie.getId(), GlobalVar.token).enqueue(
+                    new HttpCallback<MovieNotificationStatus>() {
+                        @Override
+                        public void onSuccess(Call<MovieNotificationStatus> call, Response<MovieNotificationStatus> response) {
+                            MovieNotificationStatus status = response.body();
+                            isFollowing = status.is_following();
+                            if (isFollowing) {
+                                fab.setImageResource(R.drawable.ic_remove_24dp);
+                            } else {
+                                fab.setImageResource(R.drawable.ic_add_24dp);
+                            }
+                            fab.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onError(Call<MovieNotificationStatus> call, Response<MovieNotificationStatus> response, ApiError error) {
+//                        Toast.makeText(MovieDetailActivity.this, error.getMsg(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
+        }
 
 //        Intent intent = getIntent();
 //        final String movieTitle = intent.getStringExtra(EXTRA_TITLE);
@@ -105,38 +182,34 @@ public class MovieDetailActivity extends BackableActivity {
             @Override
             public void onSuccess(retrofit2.Call<MovieDetail> call, retrofit2.Response<MovieDetail> response) {
                 final MovieDetail movieDetail = response.body();
-                runOnUiThread(new Runnable() {
+                Function<Person, String> getName = new Function<Person, String>() {
                     @Override
-                    public void run() {
-                        Function<Person, String> getName = new Function<Person, String>() {
-                            @Override
-                            public String apply(Person input) {
-                                return input.getName();
-                            }
-                        };
-                        mDirectors.setText(Util.flat(movieDetail.getDirectors(), getName));
-                        mWriters.setText(Util.flat(movieDetail.getWriters(), getName));
-                        mCasts.setText(Util.flat(movieDetail.getCasts(), getName));
-                        mGenres.setText(Util.flat(movieDetail.getGenres()));
-                        mCountries.setText(Util.flat(movieDetail.getCountries()));
-                        mLanguages.setText(Util.flat(movieDetail.getLanguages()));
-                        mPubdates.setText(Util.flat(movieDetail.getPubdates()));
-                        mDurations.setText(Util.flat(movieDetail.getDurations()));
-                        mSummary.setText(movieDetail.getSummary());
+                    public String apply(Person input) {
+                        return input.getName();
                     }
-                });
+                };
+                mDirectors.setText(Util.flat(movieDetail.getDirectors(), getName));
+                mWriters.setText(Util.flat(movieDetail.getWriters(), getName));
+                mCasts.setText(Util.flat(movieDetail.getCasts(), getName));
+                mGenres.setText(Util.flat(movieDetail.getGenres()));
+                mCountries.setText(Util.flat(movieDetail.getCountries()));
+                mLanguages.setText(Util.flat(movieDetail.getLanguages()));
+                mPubdates.setText(Util.flat(movieDetail.getPubdates()));
+                mDurations.setText(Util.flat(movieDetail.getDurations()));
+                mSummary.setText(movieDetail.getSummary());
+            }
+
+            @Override
+            public void onError(Call<MovieDetail> call, Response<MovieDetail> response, ApiError error) {
+                Toast.makeText(MovieDetailActivity.this, error.getMsg(),
+                        Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(retrofit2.Call<MovieDetail> call, Throwable t) {
                 super.onFailure(call, t);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MovieDetailActivity.this, R.string.load_fail,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                Toast.makeText(MovieDetailActivity.this, R.string.load_fail,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

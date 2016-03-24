@@ -27,7 +27,6 @@ public class NewMoviesFragment extends BaseFragment {
 
     @Bind(R.id.viewpager)
     ViewPager mViewPager;
-    private ViewPager.OnPageChangeListener mOnPageChangeListener;
 
     public static NewMoviesFragment newInstance() {
         NewMoviesFragment fragment = new NewMoviesFragment();
@@ -50,7 +49,7 @@ public class NewMoviesFragment extends BaseFragment {
         getBaseActivity().setSupportActionBar(toolbar);
 
         final ActionBar ab = getBaseActivity().getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+        ab.setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
         ab.setDisplayHomeAsUpEnabled(true);
 
         final MyFragmentPagerAdapter<LazyLoadFragment> adapter = new MyFragmentPagerAdapter<>(getChildFragmentManager());
@@ -60,23 +59,6 @@ public class NewMoviesFragment extends BaseFragment {
         adapter.addFragment(InTheatersMovieListFragment.newInstance(), getString(R.string.in_theaters));
         adapter.addFragment(ComingSoonMovieListFragment.newInstance(), getString(R.string.coming_soon));
         mViewPager.setAdapter(adapter);
-        mOnPageChangeListener = new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                adapter.getItem(position).onLoad();
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-            }
-        };
-        mViewPager.addOnPageChangeListener(mOnPageChangeListener);
-        // first page doesn't invoke callback automatically
-        mOnPageChangeListener.onPageSelected(0);
 
         TabLayout tabLayout = findById(view, R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -87,7 +69,6 @@ public class NewMoviesFragment extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mViewPager.removeOnPageChangeListener(mOnPageChangeListener);
         ButterKnife.unbind(this);
     }
 }

@@ -42,7 +42,7 @@ public class HelpFragment extends BaseFragment {
         getBaseActivity().setSupportActionBar(toolbar);
 
         final ActionBar ab = getBaseActivity().getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+        ab.setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
         ab.setDisplayHomeAsUpEnabled(true);
 
         TextView tvVersion = findById(view, R.id.tv_version);

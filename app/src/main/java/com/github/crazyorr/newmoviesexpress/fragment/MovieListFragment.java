@@ -27,12 +27,17 @@ public abstract class MovieListFragment extends PagedListFragment<MovieSimple> {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View createView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_movie_list, container, false);
     }
 
     @Override
     protected int getRecyclerViewId() {
         return R.id.recyclerview;
+    }
+
+    @Override
+    protected int getSwipeRefreshLayoutId() {
+        return R.id.swiperefresh;
     }
 }

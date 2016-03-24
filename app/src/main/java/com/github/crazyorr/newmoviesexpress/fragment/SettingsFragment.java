@@ -21,8 +21,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
-        refreshPreference(getString(R.string.pref_key_notify_since));
-        refreshPreference(getString(R.string.pref_key_notify_until));
+        refreshPreference(getString(R.string.pref_key_notify_days_before));
+        refreshPreference(getString(R.string.pref_key_notify_days_after));
     }
 
     @Override
@@ -50,9 +50,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             NumberPickerPreference numberPickerPreference = (NumberPickerPreference) preference;
             int count = numberPickerPreference.getValue();
             String summary = null;
-            if (key.equals(getString(R.string.pref_key_notify_since))) {
+            if (key.equals(getString(R.string.pref_key_notify_days_before))) {
                 summary = getResources().getQuantityString(R.plurals.days_before, count, count);
-            } else if (key.equals(getString(R.string.pref_key_notify_until))) {
+            } else if (key.equals(getString(R.string.pref_key_notify_days_after))) {
                 summary = getResources().getQuantityString(R.plurals.days_after, count, count);
             }
             if (summary != null) {

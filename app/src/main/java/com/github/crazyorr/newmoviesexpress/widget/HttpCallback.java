@@ -1,5 +1,10 @@
 package com.github.crazyorr.newmoviesexpress.widget;
 
+import com.github.crazyorr.newmoviesexpress.model.ApiError;
+import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
+
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -16,8 +21,13 @@ public abstract class HttpCallback<T> implements Callback<T> {
         if (response.isSuccess()) {
             onSuccess(call, response);
         } else {
-            onFailure(call, new Throwable("code: " + response.code()
-                    + " message: " + response.message()));
+            ApiError error = null;
+            try {
+                error = HttpHelper.mErrorConverter.convert(response.errorBody());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            onError(call, response, error);
         }
     }
 
@@ -28,4 +38,6 @@ public abstract class HttpCallback<T> implements Callback<T> {
     }
 
     public abstract void onSuccess(Call<T> call, Response<T> response);
+
+    public abstract void onError(Call<T> call, Response<T> response, ApiError error);
 }

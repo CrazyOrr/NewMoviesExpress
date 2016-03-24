@@ -1,32 +1,46 @@
 package com.github.crazyorr.newmoviesexpress.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.github.crazyorr.newmoviesexpress.BackgroundService;
 import com.github.crazyorr.newmoviesexpress.R;
 import com.github.crazyorr.newmoviesexpress.fragment.HelpFragment;
-import com.github.crazyorr.newmoviesexpress.fragment.KeywordsFragment;
 import com.github.crazyorr.newmoviesexpress.fragment.NewMoviesFragment;
-import com.github.crazyorr.newmoviesexpress.service.BackgroundService;
+import com.github.crazyorr.newmoviesexpress.model.ApiError;
+import com.github.crazyorr.newmoviesexpress.model.UserInfo;
+import com.github.crazyorr.newmoviesexpress.util.Const;
+import com.github.crazyorr.newmoviesexpress.util.GlobalVar;
+import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
+import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class MainActivity extends BaseActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
+    private final static int REQUEST_CODE_LOGIN = 0;
 
     @Bind(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
     @Bind(R.id.nav_view)
     NavigationView mNavigationView;
+    TextView mTvUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +53,22 @@ public class MainActivity extends BaseActivity {
             setupDrawerContent(mNavigationView);
         }
 
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        final String token = sharedPref.getString(Const.SHARED_PREFERENCES_TOKEN, null);
+
+        mTvUsername = ButterKnife.findById(mNavigationView.getHeaderView(0), R.id.tv_username);
+        mTvUsername.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!GlobalVar.isLoggedIn()) {
+                    goToLogin();
+                }
+            }
+        });
+        if (!TextUtils.isEmpty(token)) {
+            refreshUserInfo(token);
+        }
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.id_container, NewMoviesFragment.newInstance())
@@ -47,8 +77,20 @@ public class MainActivity extends BaseActivity {
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
-        Intent intent = new Intent(this, BackgroundService.class);
+        Intent intent = new Intent(MainActivity.this, BackgroundService.class);
         startService(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQUEST_CODE_LOGIN:
+                if (resultCode == RESULT_OK) {
+                    refreshUserInfo(data.getStringExtra(Const.INTENT_EXTRA_TOKEN));
+                }
+                break;
+        }
     }
 
     @Override
@@ -84,15 +126,16 @@ public class MainActivity extends BaseActivity {
                             case R.id.nav_home:
                                 fragment = NewMoviesFragment.newInstance();
                                 break;
-//                            case R.id.nav_notifications:
-//                                fragment = NotificationsFragment.newInstance();
-//                                break;
-                            case R.id.nav_keywords:
-                                fragment = KeywordsFragment.newInstance();
+                            case R.id.nav_notifications:
+                                if (GlobalVar.isLoggedIn()) {
+                                    startActivity(new Intent(MainActivity.this, NotificationsActivity.class));
+                                } else {
+                                    Toast.makeText(MainActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
+                                    goToLogin();
+                                }
                                 break;
                             case R.id.nav_settings:
-                                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                                startActivity(intent);
+                                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                                 break;
                             case R.id.nav_help:
                                 fragment = HelpFragment.newInstance();
@@ -108,5 +151,27 @@ public class MainActivity extends BaseActivity {
                         return true;
                     }
                 });
+    }
+
+    private void refreshUserInfo(final String token) {
+        HttpHelper.mNewMoviesExpressService.userinfo(token).enqueue(new HttpCallback<UserInfo>() {
+            @Override
+            public void onSuccess(Call<UserInfo> call, Response<UserInfo> response) {
+                UserInfo userInfo = response.body();
+                mTvUsername.setText(userInfo.getUsername());
+                GlobalVar.token = token;
+            }
+
+            @Override
+            public void onError(Call<UserInfo> call, Response<UserInfo> response, ApiError error) {
+                Toast.makeText(MainActivity.this, error.getMsg(), Toast.LENGTH_SHORT).show();
+                GlobalVar.token = null;
+            }
+        });
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivityForResult(intent, REQUEST_CODE_LOGIN);
     }
 }

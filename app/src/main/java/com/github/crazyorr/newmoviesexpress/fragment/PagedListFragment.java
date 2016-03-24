@@ -3,15 +3,20 @@ package com.github.crazyorr.newmoviesexpress.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.github.crazyorr.newmoviesexpress.R;
+import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.github.crazyorr.newmoviesexpress.model.PagedList;
+import com.github.crazyorr.newmoviesexpress.util.Const;
 import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
-import com.github.crazyorr.newmoviesexpress.widget.IFooter;
+import com.github.crazyorr.newmoviesexpress.widget.OnRecyclerViewScrollReachListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,20 +31,20 @@ import retrofit2.Response;
 public abstract class PagedListFragment<T> extends LazyLoadFragment {
     private static final String TAG = PagedListFragment.class.getSimpleName();
 
+    SwipeRefreshLayout mSwipeRefreshLayout;
     RecyclerView mRecyclerView;
     RecyclerView.Adapter<? extends RecyclerView.ViewHolder> mAdapter;
-    private int mItemCountPerLoad;
     int mTotal = 0;
-    int mCurIndex = -1;
+    int mCur = -1;
+    private int mItemCountPerLoad = Const.ITEM_COUNT_PER_PAGE;
     private RecyclerView.OnScrollListener mOnScrollListener;
     private List<T> mItems;
 
-    private boolean isBottomReached;
+    private boolean isLoading;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mItemCountPerLoad = getResources().getInteger(R.integer.item_count_per_load);
         if (savedInstanceState == null) {
             mItems = new ArrayList<>();
             mAdapter = buildAdapter(getActivity(), mItems);
@@ -48,36 +53,48 @@ public abstract class PagedListFragment<T> extends LazyLoadFragment {
 
     protected abstract RecyclerView.Adapter<? extends RecyclerView.ViewHolder> buildAdapter(Context context, List<T> items);
 
+    @Nullable
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    final public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = createView(inflater, container, savedInstanceState);
+        mSwipeRefreshLayout = ButterKnife.findById(view, getSwipeRefreshLayoutId());
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary, R.color.colorPrimaryDark);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh(true);
+            }
+        });
         mRecyclerView = ButterKnife.findById(view, getRecyclerViewId());
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mRecyclerView.getContext()));
 //        mRecyclerView.setLayoutManager(new GridLayoutManager(mRecyclerView.getContext(), 3));
         mRecyclerView.setAdapter(mAdapter);
-        mOnScrollListener = new RecyclerView.OnScrollListener() {
-            int pastVisiblesItems, visibleItemCount, totalItemCount;
-
+        mOnScrollListener = new OnRecyclerViewScrollReachListener() {
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager mLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                visibleItemCount = mLayoutManager.getChildCount();
-                totalItemCount = mLayoutManager.getItemCount();
-                pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
-                if (!isBottomReached) {
-                    if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
-                        isBottomReached = true;
-                        if (mCurIndex < mTotal) {
-                            loadAsync(mCurIndex, mItemCountPerLoad);
-                        } else {
-                            dismissFooter();
-                        }
+            public void onBottomReach() {
+                super.onBottomReach();
+                if (!isLoading) {
+                    if (mCur < mTotal) {
+                        loadAsync(mCur, mItemCountPerLoad);
+                        Toast.makeText(getContext(), R.string.loading,
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), R.string.all_loaded,
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         };
         mRecyclerView.addOnScrollListener(mOnScrollListener);
+        return view;
+    }
+
+    @Nullable
+    public abstract View createView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState);
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
@@ -98,60 +115,69 @@ public abstract class PagedListFragment<T> extends LazyLoadFragment {
 
     public void clearItems() {
         mItems.clear();
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mAdapter.notifyDataSetChanged();
-            }
-        });
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void load() {
-        if (mCurIndex < 0) {
-            loadAsync(0, mItemCountPerLoad);
+        if (mCur < 0) {
+            refresh(false);
         }
+    }
+
+    private void refresh(boolean isTriggeredBySwipe) {
+        if (!isTriggeredBySwipe) {
+            if (!mSwipeRefreshLayout.isRefreshing()) {
+                mSwipeRefreshLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(true);
+                    }
+                });
+            }
+        }
+
+        loadAsync(0, mItemCountPerLoad);
+    }
+
+    private void onRefreshComplete() {
+        mSwipeRefreshLayout.setRefreshing(false);
+        isLoading = false;
     }
 
     protected abstract int getRecyclerViewId();
 
+    protected abstract int getSwipeRefreshLayoutId();
+
     protected abstract Call<PagedList<T>> loadData(int start, int count);
 
-    private void loadAsync(int start, int count) {
-        showFooter();
+    private void loadAsync(final int start, int count) {
+        isLoading = true;
         loadData(start, count).enqueue(new HttpCallback<PagedList<T>>() {
             @Override
             public void onSuccess(Call<PagedList<T>> call, Response<PagedList<T>> response) {
+                if (start < mCur) {
+                    clearItems();
+                }
                 PagedList<T> list = response.body();
                 mTotal = list.getTotal();
-                mCurIndex = list.getStart() + list.getCount();
+                mCur = list.getStart() + list.getCount();
                 addItems(list.getSubjects());
-                isBottomReached = false;
+                onRefreshComplete();
+            }
+
+            @Override
+            public void onError(Call<PagedList<T>> call, Response<PagedList<T>> response, ApiError error) {
+                onRefreshComplete();
+                Toast.makeText(getContext(), error.getMsg(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(Call<PagedList<T>> call, Throwable t) {
                 super.onFailure(call, t);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        dismissFooter();
-                        Toast.makeText(getContext(), R.string.load_fail, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                onRefreshComplete();
+                Toast.makeText(getContext(), R.string.load_fail, Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void showFooter() {
-        if (mAdapter instanceof IFooter) {
-            ((IFooter) mAdapter).showFooter();
-        }
-    }
-
-    private void dismissFooter() {
-        if (mAdapter instanceof IFooter) {
-            ((IFooter) mAdapter).dismissFooter();
-        }
     }
 }
