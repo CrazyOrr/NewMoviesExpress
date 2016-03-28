@@ -25,10 +25,8 @@
     <string name="submit_succeed">提交成功</string>
     <string name="submit_fail">提交失败</string>
     <string name="notification_title">%1$d部新片即将上映</string>
-    <string name="add_keywords">添加关键词</string>
     <string name="help">帮助</string>
     <string name="home">主页</string>
-    <string name="keywords">关键词</string>
     <string name="loading">加载中</string>
     <string name="all_loaded">已全部加载</string>
     <string name="load_fail">加载失败</string>
