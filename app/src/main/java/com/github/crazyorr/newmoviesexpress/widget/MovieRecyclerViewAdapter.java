@@ -98,7 +98,7 @@ public class MovieRecyclerViewAdapter
     }
 
     class ViewHolderItem extends RecyclerView.ViewHolder {
-        @Bind(R.id.id_iv_poster)
+        @Bind(R.id.iv_poster)
         public ImageView mPoster;
         @Bind(R.id.id_tv_title)
         public TextView mTitle;

@@ -23,8 +23,6 @@ import static butterknife.ButterKnife.findById;
  */
 public class HelpFragment extends BaseFragment {
 
-    private static final String TAG = HelpFragment.class.getSimpleName();
-
     public static HelpFragment newInstance() {
         HelpFragment fragment = new HelpFragment();
         return fragment;

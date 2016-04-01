@@ -33,9 +33,9 @@ public class HttpHelper {
 //                    @Override
 //                    public Response intercept(Chain chain) throws IOException {
 //                        Request request;
-//                        if (!TextUtils.isEmpty(GlobalVar.token)) {
+//                        if (!TextUtils.isEmpty(GlobalVar.getToken())) {
 //                            request = chain.request().newBuilder()
-//                                    .addHeader("Authorization", GlobalVar.token).build();
+//                                    .addHeader("Authorization", GlobalVar.getToken()).build();
 //                        } else {
 //                            request = chain.request();
 //                        }

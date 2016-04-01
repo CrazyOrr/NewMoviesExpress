@@ -1,9 +1,7 @@
 package com.github.crazyorr.newmoviesexpress.activity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -16,6 +14,7 @@ import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.github.crazyorr.newmoviesexpress.model.TokenInfo;
 import com.github.crazyorr.newmoviesexpress.util.Const;
 import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
+import com.github.crazyorr.newmoviesexpress.util.Util;
 import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
 
 import java.net.ConnectException;
@@ -80,10 +79,7 @@ public class LoginActivity extends BackableActivity {
                                 String token = tokenInfo.getToken();
 
                                 // save token
-                                final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-                                SharedPreferences.Editor editor = sharedPref.edit();
-                                editor.putString(Const.SHARED_PREFERENCES_TOKEN, token);
-                                editor.apply();
+                                Util.saveTokenToPreference(LoginActivity.this, token);
 
                                 Intent data = new Intent();
                                 data.putExtra(Const.INTENT_EXTRA_TOKEN, token);

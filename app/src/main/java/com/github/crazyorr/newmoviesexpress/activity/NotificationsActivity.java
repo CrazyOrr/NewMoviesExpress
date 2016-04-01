@@ -1,6 +1,5 @@
 package com.github.crazyorr.newmoviesexpress.activity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -44,7 +43,6 @@ import static butterknife.ButterKnife.findById;
 public class NotificationsActivity extends BackableActivity {
 
     public static final String INTENT_EXTRA_NOTIFICATIONS_FILTER = "INTENT_EXTRA_NOTIFICATIONS_FILTER";
-    private static final String TAG = NotificationsActivity.class.getSimpleName();
     @Bind(R.id.swiperefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
     @Bind(R.id.recyclerview)
@@ -153,7 +151,7 @@ public class NotificationsActivity extends BackableActivity {
 
     private void loadNotifications(final int start, int count) {
         isLoading = true;
-        HttpHelper.mNewMoviesExpressService.notifications(GlobalVar.token, start, count, mNotificationsFilter, mOptionalParams
+        HttpHelper.mNewMoviesExpressService.notifications(GlobalVar.getToken(), start, count, mNotificationsFilter, mOptionalParams
         ).enqueue(new HttpCallback<PagedList<MovieSimple>>() {
 
             @Override
@@ -173,12 +171,6 @@ public class NotificationsActivity extends BackableActivity {
             public void onError(Call<PagedList<MovieSimple>> call, Response<PagedList<MovieSimple>> response, ApiError error) {
                 onRefreshComplete();
                 Toast.makeText(NotificationsActivity.this, error.getMsg(), Toast.LENGTH_SHORT).show();
-                switch (error.getCode()) {
-                    case Const.StatusCode.TOKEN_MISSING:
-                    case Const.StatusCode.TOKEN_EXPIRED:
-                        startActivity(new Intent(NotificationsActivity.this, LoginActivity.class));
-                        break;
-                }
             }
 
             @Override

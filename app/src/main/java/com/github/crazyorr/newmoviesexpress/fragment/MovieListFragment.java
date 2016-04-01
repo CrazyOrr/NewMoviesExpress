@@ -18,8 +18,6 @@ import java.util.List;
  * Created by wanglei02 on 2015/10/13.
  */
 public abstract class MovieListFragment extends PagedListFragment<MovieSimple> {
-    private static final String TAG = MovieListFragment.class.getSimpleName();
-
     @Override
     protected RecyclerView.Adapter<? extends RecyclerView.ViewHolder> buildAdapter(Context context, List<MovieSimple> items) {
         return new MovieRecyclerViewAdapter(context, items);

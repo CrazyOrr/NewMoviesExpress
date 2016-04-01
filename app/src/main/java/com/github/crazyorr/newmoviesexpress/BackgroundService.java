@@ -1,5 +1,6 @@
 package com.github.crazyorr.newmoviesexpress;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -7,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Binder;
 import android.os.IBinder;
@@ -14,9 +16,9 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.github.crazyorr.newmoviesexpress.activity.MainActivity;
 import com.github.crazyorr.newmoviesexpress.activity.NotificationsActivity;
@@ -24,6 +26,7 @@ import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.github.crazyorr.newmoviesexpress.model.MovieSimple;
 import com.github.crazyorr.newmoviesexpress.model.PagedList;
 import com.github.crazyorr.newmoviesexpress.util.Const;
+import com.github.crazyorr.newmoviesexpress.util.GlobalVar;
 import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
 import com.github.crazyorr.newmoviesexpress.util.NewMoviesExpressService;
 import com.github.crazyorr.newmoviesexpress.util.Util;
@@ -40,6 +43,7 @@ import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Response;
+import timber.log.Timber;
 
 public class BackgroundService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -48,6 +52,11 @@ public class BackgroundService extends Service implements SharedPreferences.OnSh
 
     private static final int MAX_NOTIFICATIONS_COUNT = 5;
     private static final int MAX_RETRY_TIMES = 3;
+
+    // 日志文件大小(byte)
+    private static final long LOG_FILE_SIZE = 1 * 1024 * 1024;
+    // 日志文件个数
+    private static final int LOG_FILE_COUNT = 5;
 
     private MyBinder mBinder;
     private RollingLogger mLogger;
@@ -67,18 +76,11 @@ public class BackgroundService extends Service implements SharedPreferences.OnSh
 
         mBinder = new MyBinder();
 
-        //日志文件大小(byte)
-        final long LOG_FILE_SIZE = 1 * 1024 * 1024;
-        //日志文件个数
-        final int LOG_FILE_COUNT = 5;
-        mLogger = new RollingLogger(Util.getSavingPath(this) + "log", "log",
-                LOG_FILE_SIZE, LOG_FILE_COUNT);
-
         writeLogLine(TAG + "启动");
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        mToken = sharedPref.getString(Const.SHARED_PREFERENCES_TOKEN, null);
+        mToken = sharedPref.getString(Const.SHARED_PREFERENCES_TOKEN, GlobalVar.getToken());
         isNotificationEnabled = sharedPref.getBoolean(getString(R.string.pref_key_notification), true);
         Resources res = getResources();
         mDaysBefore = sharedPref.getInt(getString(R.string.pref_key_notify_days_before),
@@ -138,13 +140,20 @@ public class BackgroundService extends Service implements SharedPreferences.OnSh
     }
 
     private void writeLogLine(String log) {
-        if (mLogger != null) {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            if (mLogger == null) {
+                mLogger = new RollingLogger(Util.getSavingPath(this) + "log", "log",
+                        LOG_FILE_SIZE, LOG_FILE_COUNT);
+            }
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
                 mLogger.writeLogLine(sdf.format(new Date()) + " " + log);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            mLogger = null;
         }
     }
 
@@ -165,7 +174,7 @@ public class BackgroundService extends Service implements SharedPreferences.OnSh
 
             @Override
             public void onError(Call<PagedList<MovieSimple>> call, Response<PagedList<MovieSimple>> response, ApiError error) {
-                Log.e(TAG, error.getMsg());
+                Timber.e(error.getMsg());
                 writeLogLine("获取新片上映提醒失败：" + error.getMsg());
             }
 

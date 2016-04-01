@@ -16,8 +16,6 @@ import butterknife.ButterKnife;
  * Created by wanglei02 on 2015/10/22.
  */
 public class LoadingDialogFragment extends AppCompatDialogFragment {
-    private static final String TAG = LoadingDialogFragment.class.getSimpleName();
-
     private static final String KEY_PROMPT = "KEY_PROMPT";
 
     private String mPrompt;

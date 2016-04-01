@@ -1,22 +1,25 @@
 package com.github.crazyorr.newmoviesexpress.activity;
 
+import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.crazyorr.newmoviesexpress.BackgroundService;
 import com.github.crazyorr.newmoviesexpress.R;
+import com.github.crazyorr.newmoviesexpress.databinding.NavHeaderBinding;
 import com.github.crazyorr.newmoviesexpress.fragment.HelpFragment;
 import com.github.crazyorr.newmoviesexpress.fragment.NewMoviesFragment;
 import com.github.crazyorr.newmoviesexpress.model.ApiError;
@@ -24,6 +27,7 @@ import com.github.crazyorr.newmoviesexpress.model.UserInfo;
 import com.github.crazyorr.newmoviesexpress.util.Const;
 import com.github.crazyorr.newmoviesexpress.util.GlobalVar;
 import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
+import com.github.crazyorr.newmoviesexpress.util.Util;
 import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
 
 import butterknife.Bind;
@@ -32,15 +36,13 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 public class MainActivity extends BaseActivity {
-
-    private final static String TAG = MainActivity.class.getSimpleName();
+    private final static int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 0;
     private final static int REQUEST_CODE_LOGIN = 0;
 
     @Bind(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
-    @Bind(R.id.nav_view)
-    NavigationView mNavigationView;
-    TextView mTvUsername;
+
+    private NavHeaderBinding mNavHeaderBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,22 +51,12 @@ public class MainActivity extends BaseActivity {
 
         ButterKnife.bind(this);
 
-        if (mNavigationView != null) {
-            setupDrawerContent(mNavigationView);
-        }
+        NavigationView navigationView = ButterKnife.findById(this, R.id.nav_view);
+        setupDrawerContent(navigationView);
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        final String token = sharedPref.getString(Const.SHARED_PREFERENCES_TOKEN, null);
+        mNavHeaderBinding = NavHeaderBinding.bind(navigationView.getHeaderView(0));
 
-        mTvUsername = ButterKnife.findById(mNavigationView.getHeaderView(0), R.id.tv_username);
-        mTvUsername.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!GlobalVar.isLoggedIn()) {
-                    goToLogin();
-                }
-            }
-        });
+        String token = Util.loadTokenFromPreference(this);
         if (!TextUtils.isEmpty(token)) {
             refreshUserInfo(token);
         }
@@ -77,8 +69,16 @@ public class MainActivity extends BaseActivity {
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
+        checkDangerousPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
         Intent intent = new Intent(MainActivity.this, BackgroundService.class);
         startService(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Util.saveTokenToPreference(MainActivity.this, GlobalVar.getToken());
     }
 
     @Override
@@ -116,6 +116,14 @@ public class MainActivity extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void onUsernameClick(View v) {
+        if (GlobalVar.hasToken()) {
+            logout();
+        } else {
+            goToLogin();
+        }
+    }
+
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -127,7 +135,7 @@ public class MainActivity extends BaseActivity {
                                 fragment = NewMoviesFragment.newInstance();
                                 break;
                             case R.id.nav_notifications:
-                                if (GlobalVar.isLoggedIn()) {
+                                if (GlobalVar.hasToken()) {
                                     startActivity(new Intent(MainActivity.this, NotificationsActivity.class));
                                 } else {
                                     Toast.makeText(MainActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
@@ -158,14 +166,28 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onSuccess(Call<UserInfo> call, Response<UserInfo> response) {
                 UserInfo userInfo = response.body();
-                mTvUsername.setText(userInfo.getUsername());
-                GlobalVar.token = token;
+                mNavHeaderBinding.setUserInfo(userInfo);
+                GlobalVar.setToken(token);
             }
 
             @Override
             public void onError(Call<UserInfo> call, Response<UserInfo> response, ApiError error) {
                 Toast.makeText(MainActivity.this, error.getMsg(), Toast.LENGTH_SHORT).show();
-                GlobalVar.token = null;
+            }
+        });
+    }
+
+    private void logout() {
+        HttpHelper.mNewMoviesExpressService.logout(GlobalVar.getToken()).enqueue(new HttpCallback<Void>() {
+            @Override
+            public void onSuccess(Call<Void> call, Response<Void> response) {
+                mNavHeaderBinding.setUserInfo(null);
+                GlobalVar.setToken(null);
+            }
+
+            @Override
+            public void onError(Call<Void> call, Response<Void> response, ApiError error) {
+                Toast.makeText(MainActivity.this, error.getMsg(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -173,5 +195,36 @@ public class MainActivity extends BaseActivity {
     private void goToLogin() {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivityForResult(intent, REQUEST_CODE_LOGIN);
+    }
+
+    private void checkDangerousPermission(String permission) {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), permission)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{permission},
+                    MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                break;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 }

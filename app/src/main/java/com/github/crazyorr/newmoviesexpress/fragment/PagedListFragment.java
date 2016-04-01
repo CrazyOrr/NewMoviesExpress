@@ -29,8 +29,6 @@ import retrofit2.Response;
  * Created by wanglei02 on 2015/10/13.
  */
 public abstract class PagedListFragment<T> extends LazyLoadFragment {
-    private static final String TAG = PagedListFragment.class.getSimpleName();
-
     SwipeRefreshLayout mSwipeRefreshLayout;
     RecyclerView mRecyclerView;
     RecyclerView.Adapter<? extends RecyclerView.ViewHolder> mAdapter;

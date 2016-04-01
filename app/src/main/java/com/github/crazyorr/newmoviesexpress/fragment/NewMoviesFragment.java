@@ -22,9 +22,6 @@ import static butterknife.ButterKnife.findById;
  * Created by wanglei02 on 2015/10/13.
  */
 public class NewMoviesFragment extends BaseFragment {
-
-    private static final String TAG = NewMoviesFragment.class.getSimpleName();
-
     @Bind(R.id.viewpager)
     ViewPager mViewPager;
 

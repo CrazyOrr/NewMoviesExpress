@@ -54,4 +54,7 @@ public interface NewMoviesExpressService {
 
     @GET("api/userinfo")
     Call<UserInfo> userinfo(@Header("Authorization") String token);
+
+    @GET("api/logout")
+    Call<Void> logout(@Header("Authorization") String token);
 }

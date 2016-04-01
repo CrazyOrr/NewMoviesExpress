@@ -1,235 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main_content"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/appbar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/detail_backdrop_height"
-        android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay">
+    <data>
 
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/id_collapsing_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+        <import type="android.view.View" />
 
-            <ImageView
-                android:id="@+id/id_iv_backdrop"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fitsSystemWindows="true"
-                android:scaleType="centerCrop"
-                app:layout_collapseMode="parallax" />
+        <import type="android.databinding.ObservableBoolean" />
 
-            <ImageView
-                android:id="@+id/id_iv_poster"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:fitsSystemWindows="true"
-                android:scaleType="fitCenter"
-                android:transitionName="@string/transition_name_poster"
-                app:layout_collapseMode="parallax" />
+        <import type="android.text.TextUtils" />
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay" />
+        <variable
+            name="movie"
+            type="com.github.crazyorr.newmoviesexpress.model.MovieSimple" />
 
-        </android.support.design.widget.CollapsingToolbarLayout>
+        <variable
+            name="token"
+            type="String" />
 
-    </android.support.design.widget.AppBarLayout>
+        <variable
+            name="isFollowing"
+            type="ObservableBoolean" />
 
-    <android.support.v4.widget.NestedScrollView
+        <variable
+            name="handlers"
+            type="com.github.crazyorr.newmoviesexpress.activity.MovieDetailActivity.FabClickHandlers" />
+    </data>
+
+    <android.support.design.widget.CoordinatorLayout
+
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:fitsSystemWindows="true">
 
-        <LinearLayout
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/detail_backdrop_height"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.design.widget.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fitsSystemWindows="true"
+                app:contentScrim="?attr/colorPrimary"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:title="@{movie.title}">
+
+                <ImageView
+                    android:id="@+id/iv_backdrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fitsSystemWindows="true"
+                    android:scaleType="centerCrop"
+                    app:layout_collapseMode="parallax" />
+
+                <ImageView
+                    android:id="@+id/iv_poster"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10dp"
+                    android:fitsSystemWindows="true"
+                    android:scaleType="fitCenter"
+                    android:transitionName="@string/transition_name_poster"
+                    app:layout_collapseMode="parallax" />
+
+                <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+            </android.support.design.widget.CollapsingToolbarLayout>
+
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="@dimen/movie_detail_vertical_margin"
-            android:layout_marginTop="@dimen/movie_detail_vertical_margin"
-            android:orientation="vertical">
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <android.support.v7.widget.CardView
-                style="@style/StackCardView"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:layout_marginBottom="@dimen/movie_detail_vertical_margin"
+                android:layout_marginTop="@dimen/movie_detail_vertical_margin"
+                android:orientation="vertical">
 
-                <LinearLayout
-                    style="@style/Widget.CardContent"
+                <android.support.v7.widget.CardView
+                    style="@style/StackCardView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        style="@style/Widget.CardContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/directors_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_directors"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/writers_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_writers"
+                                style="@style/ItemContentTextView" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/casts_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_casts"
+                                style="@style/ItemContentTextView" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/genres_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_genres"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/countries_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_countries"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/languages_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_languages"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/pubdates_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_pubdates"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/ItemTitleTextView"
+                                android:text="@string/durations_colon" />
+
+                            <TextView
+                                android:id="@+id/tv_durations"
+                                style="@style/ItemContentTextView" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    style="@style/StackCardView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_marginBottom="@dimen/card_margin_vertical">
 
                     <LinearLayout
+                        style="@style/Widget.CardContent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/directors_colon" />
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/summary"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                         <TextView
-                            android:id="@+id/tv_directors"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/writers_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_writers"
-                            style="@style/ItemContentTextView" />
+                            android:id="@+id/id_tv_summary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minLines="5" />
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                </android.support.v7.widget.CardView>
+            </LinearLayout>
 
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/casts_colon" />
+        </android.support.v4.widget.NestedScrollView>
 
-                        <TextView
-                            android:id="@+id/tv_casts"
-                            style="@style/ItemContentTextView" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:clickable="true"
+            android:onClick="@{isFollowing.get() ? handlers.onClickRemove : handlers.onClickAdd}"
+            android:src="@{isFollowing.get() ? @drawable/ic_remove_24dp : @drawable/ic_add_24dp}"
+            android:visibility="@{TextUtils.isEmpty(token) ? View.INVISIBLE : View.VISIBLE}"
+            app:layout_anchor="@id/appbar"
+            app:layout_anchorGravity="bottom|right|end" />
 
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/genres_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_genres"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/countries_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_countries"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/languages_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_languages"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/pubdates_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_pubdates"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/ItemTitleTextView"
-                            android:text="@string/durations_colon" />
-
-                        <TextView
-                            android:id="@+id/tv_durations"
-                            style="@style/ItemContentTextView" />
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.CardView
-                style="@style/StackCardView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/card_margin_vertical">
-
-                <LinearLayout
-                    style="@style/Widget.CardContent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/summary"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
-
-                    <TextView
-                        android:id="@+id/id_tv_summary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minLines="5" />
-
-                </LinearLayout>
-
-            </android.support.v7.widget.CardView>
-        </LinearLayout>
-
-    </android.support.v4.widget.NestedScrollView>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/id_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/fab_margin"
-        android:clickable="true"
-        android:visibility="invisible"
-        app:layout_anchor="@id/appbar"
-        app:layout_anchorGravity="bottom|right|end" />
-
-</android.support.design.widget.CoordinatorLayout>
+    </android.support.design.widget.CoordinatorLayout>
+</layout>

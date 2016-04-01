@@ -9,9 +9,19 @@ import com.github.crazyorr.newmoviesexpress.model.MovieSimple;
  */
 public class GlobalVar {
     public static MovieSimple selectedMovie;
-    public static String token;
+    private static String mToken;
 
-    public static boolean isLoggedIn() {
-        return !TextUtils.isEmpty(token);
+    public static boolean hasToken() {
+        return !TextUtils.isEmpty(mToken);
+    }
+
+    public static String getToken() {
+        return mToken;
+    }
+
+    public static void setToken(String token) {
+        if (!TextUtils.equals(mToken, token)) {
+            mToken = token;
+        }
     }
 }
