@@ -15,7 +15,7 @@ android {
         versionCode 1
         versionName "0.0.1"
 
-        renderscriptTargetApi 23
+        renderscriptTargetApi 20
         renderscriptSupportModeEnabled true
     }
     buildTypes {

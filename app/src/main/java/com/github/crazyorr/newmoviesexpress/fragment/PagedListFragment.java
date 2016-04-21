@@ -16,7 +16,7 @@ import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.github.crazyorr.newmoviesexpress.model.PagedList;
 import com.github.crazyorr.newmoviesexpress.util.Const;
 import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
-import com.github.crazyorr.newmoviesexpress.widget.OnRecyclerViewScrollReachListener;
+import com.github.crazyorr.newmoviesexpress.widget.OnRecyclerViewScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,10 +67,10 @@ public abstract class PagedListFragment<T> extends LazyLoadFragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mRecyclerView.getContext()));
 //        mRecyclerView.setLayoutManager(new GridLayoutManager(mRecyclerView.getContext(), 3));
         mRecyclerView.setAdapter(mAdapter);
-        mOnScrollListener = new OnRecyclerViewScrollReachListener() {
+        mOnScrollListener = new OnRecyclerViewScrollListener() {
             @Override
-            public void onBottomReach() {
-                super.onBottomReach();
+            public void onEndReached() {
+                super.onEndReached();
                 if (!isLoading) {
                     if (mCur < mTotal) {
                         loadAsync(mCur, mItemCountPerLoad);

@@ -24,7 +24,7 @@ import com.github.crazyorr.newmoviesexpress.util.HttpHelper;
 import com.github.crazyorr.newmoviesexpress.util.NewMoviesExpressService;
 import com.github.crazyorr.newmoviesexpress.widget.HttpCallback;
 import com.github.crazyorr.newmoviesexpress.widget.MovieRecyclerViewAdapter;
-import com.github.crazyorr.newmoviesexpress.widget.OnRecyclerViewScrollReachListener;
+import com.github.crazyorr.newmoviesexpress.widget.OnRecyclerViewScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,11 +104,11 @@ public class NotificationsActivity extends BackableActivity {
         mAdapter = new MovieRecyclerViewAdapter(this, mMovies);
         mRecyclerView.setAdapter(mAdapter);
 
-        mOnScrollListener = new OnRecyclerViewScrollReachListener() {
+        mOnScrollListener = new OnRecyclerViewScrollListener() {
 
             @Override
-            public void onBottomReach() {
-                super.onBottomReach();
+            public void onEndReached() {
+                super.onEndReached();
                 if (!isLoading) {
                     if (mCur < mTotal) {
                         loadNotifications(mCur, Const.ITEM_COUNT_PER_PAGE);

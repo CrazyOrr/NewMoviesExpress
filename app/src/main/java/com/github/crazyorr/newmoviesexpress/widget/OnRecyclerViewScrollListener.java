@@ -7,8 +7,8 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 /**
  * Created by wanglei02 on 2016/3/15.
  */
-public class OnRecyclerViewScrollReachListener extends RecyclerView.OnScrollListener
-        implements OnBottomReachListener {
+public class OnRecyclerViewScrollListener extends RecyclerView.OnScrollListener
+        implements OnEndReachedListener {
 
     private int[] lastVisibleItemPositions;
     private boolean isOnBottomReachNotifiedOnOneScroll;
@@ -62,7 +62,7 @@ public class OnRecyclerViewScrollReachListener extends RecyclerView.OnScrollList
         if (visibleItemCount > 0) {
             if (lastVisibleItemPosition >= totalItemCount - 1) {
                 if (!isOnBottomReachNotifiedOnOneScroll) {
-                    onBottomReach();
+                    onEndReached();
                     isOnBottomReachNotifiedOnOneScroll = true;
                 }
             }
@@ -70,6 +70,6 @@ public class OnRecyclerViewScrollReachListener extends RecyclerView.OnScrollList
     }
 
     @Override
-    public void onBottomReach() {
+    public void onEndReached() {
     }
 }
