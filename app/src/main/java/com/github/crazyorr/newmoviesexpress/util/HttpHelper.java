@@ -5,9 +5,18 @@ import com.github.crazyorr.newmoviesexpress.model.ApiError;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
+
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okhttp3.logging.HttpLoggingInterceptor;
+import okio.BufferedSink;
+import okio.GzipSink;
+import okio.Okio;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -25,25 +34,9 @@ public class HttpHelper {
     private static OkHttpClient mClient;
 
     static {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         mClient = new OkHttpClient.Builder()
+                .addInterceptor(new GzipRequestInterceptor())
                 .addNetworkInterceptor(new StethoInterceptor())
-//                .addInterceptor(new Interceptor() {
-//                    @Override
-//                    public Response intercept(Chain chain) throws IOException {
-//                        Request request;
-//                        if (!TextUtils.isEmpty(GlobalVar.getToken())) {
-//                            request = chain.request().newBuilder()
-//                                    .addHeader("Authorization", GlobalVar.getToken()).build();
-//                        } else {
-//                            request = chain.request();
-//                        }
-//
-//                        return chain.proceed(request);
-//                    }
-//                })
-                .addInterceptor(interceptor)
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -63,5 +56,45 @@ public class HttpHelper {
         mNewMoviesExpressService = retrofit.create(NewMoviesExpressService.class);
 
         mErrorConverter = retrofit.responseBodyConverter(ApiError.class, ApiError.class.getAnnotations());
+    }
+
+    /**
+     * This interceptor compresses the HTTP request body. Many webservers can't handle this!
+     */
+    static class GzipRequestInterceptor implements Interceptor {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Request originalRequest = chain.request();
+            if (originalRequest.body() == null || originalRequest.header("Content-Encoding") != null) {
+                return chain.proceed(originalRequest);
+            }
+
+            Request compressedRequest = originalRequest.newBuilder()
+                    .header("Content-Encoding", "gzip")
+                    .method(originalRequest.method(), gzip(originalRequest.body()))
+                    .build();
+            return chain.proceed(compressedRequest);
+        }
+
+        private RequestBody gzip(final RequestBody body) {
+            return new RequestBody() {
+                @Override
+                public MediaType contentType() {
+                    return body.contentType();
+                }
+
+                @Override
+                public long contentLength() {
+                    return -1; // We don't know the compressed length in advance!
+                }
+
+                @Override
+                public void writeTo(BufferedSink sink) throws IOException {
+                    BufferedSink gzipSink = Okio.buffer(new GzipSink(sink));
+                    body.writeTo(gzipSink);
+                    gzipSink.close();
+                }
+            };
+        }
     }
 }
