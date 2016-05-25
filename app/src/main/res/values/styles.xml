@@ -39,4 +39,9 @@
         <item name="android:layout_marginLeft">2dp</item>
     </style>
 
+    <style name="PullToRefreshTextAppearance" parent="@android:style/TextAppearance">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/colorSubText</item>
+    </style>
+
 </resources>

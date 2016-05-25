@@ -11,4 +11,7 @@
     <dimen name="loading_progress_dialog_text_margin">15dp</dimen>
     <dimen name="movie_detail_vertical_margin">24dp</dimen>
     <dimen name="help_info_vertical_margin">20dp</dimen>
+    <dimen name="loading_more_vertical_padding">10dp</dimen>
+    <dimen name="movie_item_vertical_spacing">5dp</dimen>
+    <dimen name="movie_list_horizontal_margin">5dp</dimen>
 </resources>
